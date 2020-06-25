@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProCodeGuide.Samples.EFCore.DbContexts;
 using ProCodeGuide.Samples.EFCore.Model;
+using ProCodeGuide.Samples.EFCore.Repository;
 
 namespace ProCodeGuide.Samples.EFCore.Controllers
 {
@@ -14,26 +15,25 @@ namespace ProCodeGuide.Samples.EFCore.Controllers
     [ApiController]
     public class EmployeeController : ControllerBase
     {
-        private IApplicationDbContext _dbcontext;
-        public EmployeeController(IApplicationDbContext dbcontext)
+        private IEmployeeRepository _employeerepository;
+        public EmployeeController(IEmployeeRepository employeerepository)
         {
-            _dbcontext = dbcontext;
+            _employeerepository = employeerepository;
         }
 
         [HttpPost]
         [Route("Create")]
         public async Task<ActionResult> create([FromBody] Employee employee)
         {
-            _dbcontext.Employees.Add(employee);
-            await _dbcontext.SaveChanges();
-            return Ok(employee.Id);
+            int empid = await _employeerepository.Create(employee);
+            return Ok(empid);
         }
 
         [HttpGet]
         [Route("GetAll")]
         public async Task<ActionResult> GetAll()
         {
-            var employees = await _dbcontext.Employees.ToListAsync<Employee>();
+            var employees = await _employeerepository.GetAll();
             return Ok(employees);
         }
 
@@ -41,7 +41,7 @@ namespace ProCodeGuide.Samples.EFCore.Controllers
         [Route("GetById/{id}")]
         public async Task<ActionResult> GetById(int id)
         {
-            var employee = await _dbcontext.Employees.Where(empid => empid.Id == id).FirstOrDefaultAsync();
+            var employee = await _employeerepository.GetById(id);
             return Ok(employee);
         }
 
@@ -49,26 +49,16 @@ namespace ProCodeGuide.Samples.EFCore.Controllers
         [Route("Update/{id}")]
         public async Task<IActionResult> Update(int id, Employee employee)
         {
-            var employeeupt = await _dbcontext.Employees.Where(empid => empid.Id == id).FirstOrDefaultAsync();
-            if (employeeupt == null) return Ok("Employee does not exists");
-
-            employeeupt.Designation = employee.Designation;
-            employeeupt.Salary = employee.Salary;
-
-            await _dbcontext.SaveChanges();
-            return Ok("Employee details successfully modified");
+            string resp = await _employeerepository.Update(id, employee);
+            return Ok(resp);
         }
 
         [HttpDelete]
         [Route("Delete/{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var employeedel = await _dbcontext.Employees.Where(empid => empid.Id == id).FirstOrDefaultAsync();
-            if (employeedel == null) return Ok("Employee does not exists");
-
-            _dbcontext.Employees.Remove(employeedel);
-            await _dbcontext.SaveChanges();
-            return Ok("Employee details deleted modified");
+            var resp = await _employeerepository.Delete(id);
+            return Ok(resp);
         }
     }
 }

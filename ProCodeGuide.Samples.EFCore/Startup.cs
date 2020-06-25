@@ -11,6 +11,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ProCodeGuide.Samples.EFCore.DbContexts;
 using Microsoft.EntityFrameworkCore;
+using ProCodeGuide.Samples.EFCore.Repository;
+using ProCodeGuide.Samples.EFCore.Model;
 
 namespace ProCodeGuide.Samples.EFCore
 {
@@ -31,6 +33,8 @@ namespace ProCodeGuide.Samples.EFCore
                 Configuration.GetConnectionString("DefaultConnection"),
                 ef => ef.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
             services.AddScoped<IApplicationDbContext>(provider => provider.GetService<ApplicationDbContext>());
+
+            services.AddTransient<IEmployeeRepository, EmployeeRepository>();
 
             services.AddControllers();
         }
